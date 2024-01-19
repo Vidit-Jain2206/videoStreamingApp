@@ -19,7 +19,17 @@ const getAllVideos = asyncHandler(async (req, res) => {
   //4. return the filtered videos on the basis of sort page and limit
 
   //1.
+
+  //we have to get only published videos
+
   let pipeline = [];
+
+  pipeline.push({
+    $match: {
+      isPublished: true,
+    },
+  });
+
   if (userId) {
     pipeline.push({
       $match: {
@@ -79,7 +89,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
 const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
-  // TODO: get video, upload to cloudinary, create video
   if (!title || !description) {
     throw new ApiError(401, "Title and Description both are required");
   }
@@ -143,11 +152,10 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  const id = new mongoose.Types.ObjectId(videoId);
   if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "VideoId is incorrect");
   }
-  const video = await VIDEO.findById(id).populate({
+  const video = await VIDEO.findById(videoId).populate({
     path: "owner",
     select: "-password -refreshToken",
   });
@@ -158,13 +166,10 @@ const getVideoById = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, video, "Video fetched Successfully"));
-  //TODO: get video by id
 });
 
 const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: update video details like title, description, thumbnail
-  const id = new mongoose.Types.ObjectId(videoId);
   if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "VideoId is incorrect");
   }
@@ -178,8 +183,7 @@ const updateVideo = asyncHandler(async (req, res) => {
       throw new ApiError(500, "could not upload it on cloudinary");
     }
   }
-
-  const oldVideoDetails = await VIDEO.findById(id).populate({
+  const oldVideoDetails = await VIDEO.findById(videoId).populate({
     path: "owner",
     select: "-password -refreshToken",
   });
@@ -215,12 +219,11 @@ const updateVideo = asyncHandler(async (req, res) => {
 
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: delete video
-  const id = new mongoose.Types.ObjectId(videoId);
+
   if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "VideoId is incorrect");
   }
-  const video = await VIDEO.findByIdAndDelete(id);
+  const video = await VIDEO.findByIdAndDelete(videoId);
   if (!video) {
     throw new ApiError(400, "Video cannnot be fetched. VideoId is incorrect");
   }
@@ -231,11 +234,11 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  const id = new mongoose.Types.ObjectId(videoId);
+
   if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "Video is not fetched as VideoId is incorrect");
   }
-  const video = await VIDEO.findById(id).populate({
+  const video = await VIDEO.findById(videoId).populate({
     path: "owner",
     select: "-password -refreshToken",
   });

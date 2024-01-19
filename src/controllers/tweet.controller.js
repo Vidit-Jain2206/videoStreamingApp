@@ -6,20 +6,14 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createTweet = asyncHandler(async (req, res) => {
-  //TODO: create tweet
-
   const { content } = req.body;
-  let user = await USER.findById({ _id: req.user?._id });
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
 
   if (!content) {
     throw new ApiError(400, "Content is required");
   }
   const tweet = await TWEET.create({
     content,
-    owner: new mongoose.Types.ObjectId(req.user?._id),
+    owner: req.user?._id,
   });
 
   const isTweetExist = await TWEET.findById(tweet._id).populate({
@@ -35,7 +29,6 @@ const createTweet = asyncHandler(async (req, res) => {
 });
 
 const getUserTweets = asyncHandler(async (req, res) => {
-  // TODO: get user tweets
   const { userId } = req.params;
   if (!isValidObjectId(userId)) {
     throw new ApiError(400, "UserId is not valid");
@@ -61,7 +54,6 @@ const getUserTweets = asyncHandler(async (req, res) => {
 });
 
 const updateTweet = asyncHandler(async (req, res) => {
-  //TODO: update tweet
   const { tweetId } = req.params;
   if (!isValidObjectId(tweetId)) {
     throw new ApiError(400, "tweetId is not valid");
@@ -89,7 +81,6 @@ const updateTweet = asyncHandler(async (req, res) => {
 });
 
 const deleteTweet = asyncHandler(async (req, res) => {
-  //TODO: delete tweet
   const { tweetId } = req.params;
   if (!isValidObjectId(tweetId)) {
     throw new ApiError(400, "tweetId is not valid");
